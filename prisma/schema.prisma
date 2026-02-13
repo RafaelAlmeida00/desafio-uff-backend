@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement()) @map("USR_ID")
+  nome      String   @db.VarChar(100)              @map("USR_NOME")
+  email     String   @unique @db.VarChar(255)      @map("USR_EMAIL")
+  senha     String   @db.VarChar(255)              @map("USR_SENHA")
+  createdAt DateTime @default(now())               @map("USR_CREATED_AT")
+  updatedAt DateTime @updatedAt                    @map("USR_UPDATED_AT")
+  tasks     Task[]
+
+  @@map("users")
+}
+
+model Task {
+  id        Int      @id @default(autoincrement()) @map("TSK_ID")
+  titulo    String   @db.VarChar(200)              @map("TSK_TITULO")
+  descricao String?  @db.Text                      @map("TSK_DESCRICAO")
+  status    String   @default("pendente") @db.VarChar(20) @map("TSK_STATUS")
+  userId    Int                                    @map("TSK_USR_ID")
+  createdAt DateTime @default(now())               @map("TSK_CREATED_AT")
+  updatedAt DateTime @updatedAt                    @map("TSK_UPDATED_AT")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("tasks")
+}
