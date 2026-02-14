@@ -27,6 +27,8 @@ A aplicação foi construída seguindo princípios de **Clean Code**, **Arquitet
 - **Validação:** Zod
 - **Documentação:** Swagger / OpenAPI 3.0
 - **Testes:** Jest + Supertest
+- **Logs:** Pino (Estruturados e persistidos no banco)
+- **Telemetria:** OpenTelemetry + Uptrace
 - **Infraestrutura:** Docker & Docker Compose
 - **CI/CD:** GitHub Actions
 
@@ -207,6 +209,22 @@ Utilizamos o `express-rate-limit` configurado para permitir, por exemplo, apenas
 
 ### 5. Idempotência
 Implementamos um middleware de idempotência para garantir que, se o cliente enviar a mesma requisição de criação (POST) múltiplas vezes (por falha de rede, por exemplo), a operação não seja duplicada indevidamente, garantindo consistência nos dados.
+
+---
+
+## Observabilidade: Logs e Telemetria
+
+Para garantir monitoramento eficaz e facilidade de debug em produção, implementamos uma estratégia completa de observabilidade.
+
+### 1. Logs Estruturados (Pino + Prisma)
+Utilizamos a biblioteca **Pino** para geração de logs JSON de alta performance.
+*   **Transporte Customizado:** Desenvolvemos um transporte assíncrono que intercepta os logs e os salva na tabela `logs` do PostgreSQL via Prisma.
+*   **Níveis de Log:** Registramos eventos de negócio (`info`), erros operacionais (`warn`) e falhas críticas (`error`).
+
+### 2. Telemetria Distribuída (OpenTelemetry + Uptrace)
+A aplicação é instrumentada com **OpenTelemetry** para capturar traces de requisições HTTP e queries de banco de dados.
+*   **Uptrace:** Utilizamos o Uptrace como backend de visualização para analisar latência, taxas de erro e o caminho completo das requisições (waterfall).
+*   **Correlação:** Injetamos automaticamente o `traceId` e `spanId` do OpenTelemetry nos logs do Pino. Isso permite cruzar um registro de log no banco de dados com a visualização gráfica do trace no Uptrace.
 
 ---
 
