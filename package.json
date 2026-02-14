@@ -7,7 +7,8 @@
     "lint": "npx eslint ./src/**",
     "lint:fix": "npx eslint ./src/** --fix",
     "start": "tsx watch src/index.ts",
-    "build": "tsx build src/index.ts"
+    "build": "tsx build src/index.ts",
+    "prepare": "prisma generate"
   },
   "keywords": [],
   "author": "",
