@@ -10,8 +10,11 @@
     "build": "tsx build src/index.ts",
     "prepare": "prisma generate",
     "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "docker-compose exec backend npx prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "docker-compose exec backend npx prisma db seed",
+    "db:studio": "docker-compose exec backend npx prisma studio"
   },
   "keywords": [],
   "author": "",

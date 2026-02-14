@@ -13,7 +13,7 @@ export class AuthService {
   async signup(data: SignupInput): Promise<Omit<User, 'senha'>> {
     const existing = await this.userRepository.findByEmail(data.email)
     if (existing) {
-      throw new AppError('E-mail já cadastrado', 409)
+      throw new AppError('Usuário já cadastrado, faça login.', 409)
     }
 
     const hashedPassword = await bcrypt.hash(data.senha, 10)
