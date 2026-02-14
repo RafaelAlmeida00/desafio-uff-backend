@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: desafio_postgres
+    environment:
+      POSTGRES_USER: desafio_user
+      POSTGRES_PASSWORD: desafio_password
+      POSTGRES_DB: desafio_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U desafio_user -d desafio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - desafio_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: desafio_backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://desafio_user:desafio_password@postgres:5432/desafio_db
+      JWT_SECRET: ${JWT_SECRET:-seu_secret_jwt_aqui}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+    networks:
+      - desafio_network
+    command: npm run start
+
+volumes:
+  postgres_data:
+
+networks:
+  desafio_network:
+    driver: bridge

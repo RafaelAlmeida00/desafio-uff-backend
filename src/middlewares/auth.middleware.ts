@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { env } from '../config/env'
-import { AppError } from '../errors/app.errors'
+import { env } from '../utils/config/env'
+import { AppError } from '../utils/errors/app.errors'
 
 declare module 'express' {
   interface Request {

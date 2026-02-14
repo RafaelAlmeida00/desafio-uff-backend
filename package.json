@@ -8,7 +8,10 @@
     "lint:fix": "npx eslint ./src/** --fix",
     "start": "tsx watch src/index.ts",
     "build": "tsx build src/index.ts",
-    "prepare": "prisma generate"
+    "prepare": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:reset": "prisma migrate reset --force"
   },
   "keywords": [],
   "author": "",

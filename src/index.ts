@@ -1,6 +1,6 @@
-import './config/env'
+import './utils/config/env'
 import express, { Request, Response } from 'express'
-import { env } from './config/env'
+import { env } from './utils/config/env'
 
 const app = express()
 app.use(express.json())
