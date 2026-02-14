@@ -41,7 +41,7 @@ export class AuthService {
 
     const options: SignOptions = {
       algorithm: 'HS256',
-      expiresIn: env.JWT_EXPIRES_IN as any,
+      expiresIn: env.JWT_EXPIRES_IN,
     }
 
     const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, options)
