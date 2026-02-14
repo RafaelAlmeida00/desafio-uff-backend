@@ -5,6 +5,7 @@ import { AppError } from '../utils/errors/app.errors'
 import { env } from '../utils/config/env'
 import { SignupInput, LoginInput } from '../utils/schemas/auth.schema'
 import type { User } from '@prisma/client'
+import { SignOptions } from 'jsonwebtoken'
 
 export class AuthService {
   constructor(private userRepository: UserRepository) {}
@@ -38,11 +39,12 @@ export class AuthService {
       throw new AppError('Credenciais inválidas', 401)
     }
 
-    const token = jwt.sign(
-      { sub: user.id },
-      env.JWT_SECRET,
-      { expiresIn: env.JWT_EXPIRES_IN }
-    )
+    const options: SignOptions = {
+      algorithm: 'HS256',
+      expiresIn: env.JWT_EXPIRES_IN as any,
+    }
+
+    const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, options)
 
     return { token }
   }
