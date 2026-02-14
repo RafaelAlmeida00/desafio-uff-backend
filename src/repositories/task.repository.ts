@@ -8,7 +8,9 @@ export class TaskRepository {
         titulo: data.titulo,
         descricao: data.descricao,
         status: 'pendente',
-        userId,
+        user: {
+          connect: { id: userId },
+        },
       },
     })
   }

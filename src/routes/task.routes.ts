@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { authMiddleware } from '../middlewares/auth.middleware'
 import { validate } from '../middlewares/validate.middleware'
 import { createTaskSchema, updateTaskSchema } from '../utils/schemas/task.schema'
 import { TaskController } from '../controllers/task.controller'
@@ -11,9 +12,9 @@ const taskRepository = new TaskRepository()
 const taskService = new TaskService(taskRepository)
 const taskController = new TaskController(taskService)
 
-router.post('/', validate(createTaskSchema), taskController.create)
-router.get('/', taskController.list)
-router.put('/:id', validate(updateTaskSchema), taskController.update)
-router.delete('/:id', taskController.delete)
+router.post('/', authMiddleware, validate(createTaskSchema), taskController.create)
+router.get('/', authMiddleware, taskController.list)
+router.put('/:id', authMiddleware, validate(updateTaskSchema), taskController.update)
+router.delete('/:id', authMiddleware, taskController.delete)
 
 export { router as taskRoutes }
