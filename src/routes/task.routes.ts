@@ -88,8 +88,7 @@ router.get('/', authMiddleware, (req, res, next) => taskController.list(req, res
  *       200: { description: Tarefa atualizada }
  *       404: { description: Tarefa não encontrada }
  */
-router.put('/:id', authMiddleware,
-    idempotencyMiddleware, validate(updateTaskSchema), (req, res, next) => taskController.update(req, res, next))
+router.put('/:id', authMiddleware, validate(updateTaskSchema), (req, res, next) => taskController.update(req, res, next))
 
 /**
  * @swagger
