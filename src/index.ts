@@ -13,6 +13,11 @@ import { logger } from './utils/config/logger'
 
 const app = express()
 
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+
 app.use(pinoHttp({ logger} ))
 
 app.use(express.json())
