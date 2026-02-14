@@ -37,7 +37,7 @@ export const idempotencyMiddleware = (
     if (cached.inProgress) {
       res
         .status(429)
-        .json({ message: 'Request in progress. Please try again later.' })
+        .json({ message: 'Requisição em andamento, tente novamente mais tarde.' })
       return
     }
 
@@ -64,7 +64,6 @@ export const idempotencyMiddleware = (
   }
 
   res.on('finish', () => {
-    // Only cache if a JSON response was sent.
     if (responseBodyToCache !== undefined) {
       const finalCacheEntry = {
         timestamp: now,
