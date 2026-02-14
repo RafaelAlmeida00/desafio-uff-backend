@@ -8,11 +8,8 @@ export class TaskController {
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const body = req.body as { titulo?: string; descricao?: string }
+      const body = req.body as { titulo: string; descricao?: string }
       const { titulo, descricao } = body
-      if (!titulo || typeof titulo !== 'string') {
-        throw new AppError('Título é obrigatório e deve ser um texto!', 400)
-      }
       const descricaoTyped = typeof descricao === 'string' ? descricao : undefined
       const task = await this.taskService.create(req.userId!, { titulo, descricao: descricaoTyped })
       res.status(201).json({
@@ -50,7 +47,7 @@ export class TaskController {
         throw new AppError('ID inválido', 400)
       }
 
-      const body = req.body as { titulo?: string; descricao?: string; status?: 'pendente' | 'concluida' }
+      const body = req.body as { titulo: string; descricao?: string; status?: 'pendente' | 'concluida' }
       const task = await this.taskService.update(req.userId!, taskId, body)
       res.status(200).json({
         data: task,

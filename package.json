@@ -14,7 +14,9 @@
     "db:generate": "prisma generate",
     "db:reset": "prisma migrate reset --force",
     "db:seed": "docker-compose exec backend npx prisma db seed",
-    "db:studio": "docker-compose exec backend npx prisma studio"
+    "db:studio": "docker-compose exec backend npx prisma studio",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "keywords": [],
   "author": "",
@@ -25,12 +27,18 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^25.2.3",
+    "@types/supertest": "^6.0.3",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "eslint": "^10.0.0",
     "globals": "^17.3.0",
     "jest": "^30.2.0",
     "prisma": "^5.19.0",
+    "ts-jest": "^29.2.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0"
@@ -45,6 +53,9 @@
     "express-serve-static-core": "^0.1.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "supertest": "^7.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.3.6"
   }
 }
