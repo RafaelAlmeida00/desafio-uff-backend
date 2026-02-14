@@ -43,8 +43,7 @@ const taskController = new TaskController(taskService)
  *       400: { description: Dados inválidos }
  *       401: { description: Não autorizado }
  */
-router.post('/', authMiddleware,
-    idempotencyMiddleware, validate(createTaskSchema), (req, res, next) => taskController.create(req, res, next))
+router.post('/', authMiddleware, validate(createTaskSchema), (req, res, next) => taskController.create(req, res, next))
 
 /**
  * @swagger
@@ -106,7 +105,6 @@ router.put('/:id', authMiddleware, validate(updateTaskSchema), (req, res, next) 
  *       204: { description: Tarefa removida }
  *       404: { description: Tarefa não encontrada }
  */
-router.delete('/:id', authMiddleware,
-    idempotencyMiddleware, (req, res, next) => taskController.delete(req, res, next))
+router.delete('/:id', authMiddleware, (req, res, next) => taskController.delete(req, res, next))
 
 export { router as taskRoutes }
