@@ -1,3 +1,4 @@
+import './utils/config/telemetry' // Deve ser a primeira importação
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -7,8 +8,12 @@ import { errorMiddleware } from './middlewares/error.middleware'
 import { idempotencyMiddleware } from './middlewares/idempotency.middleware'
 import swaggerUi from 'swagger-ui-express'
 import { swaggerSpec } from './utils/config/swagger'
+import { pinoHttp } from 'pino-http'
+import { logger } from './utils/config/logger'
 
 const app = express()
+
+app.use(pinoHttp({ logger} ))
 
 app.use(express.json())
 app.use(idempotencyMiddleware)

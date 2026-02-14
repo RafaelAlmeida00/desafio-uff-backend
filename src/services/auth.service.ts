@@ -6,6 +6,7 @@ import { env } from '../utils/config/env'
 import { SignupInput, LoginInput } from '../utils/schemas/auth.schema'
 import type { User } from '@prisma/client'
 import { SignOptions } from 'jsonwebtoken'
+import { logger } from '../utils/config/logger'
 
 export class AuthService {
   constructor(private userRepository: UserRepository) {}
@@ -13,6 +14,7 @@ export class AuthService {
   async signup(data: SignupInput): Promise<Omit<User, 'senha'>> {
     const existing = await this.userRepository.findByEmail(data.email)
     if (existing) {
+      logger.warn({ email: data.email }, 'Tentativa de cadastro com email já existente')
       throw new AppError('Usuário já cadastrado, faça login.', 409)
     }
 
@@ -30,12 +32,14 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
+      logger.warn({ email: data.email }, 'Tentativa de login com email não cadastrado')
       await bcrypt.compare(data.senha, '$2b$10$dummyhashfortimingattackpreven')
       throw new AppError('Credenciais inválidas', 401)
     }
 
     const validPassword = await bcrypt.compare(data.senha, user.senha)
     if (!validPassword) {
+      logger.warn({ email: data.email }, 'Tentativa de login com senha inválida')
       throw new AppError('Credenciais inválidas', 401)
     }
 
