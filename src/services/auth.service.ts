@@ -28,7 +28,7 @@ export class AuthService {
     return userWithoutPassword
   }
 
-  async login(data: LoginInput): Promise<{ token: string }> {
+  async login(data: LoginInput): Promise<{ token: string, user: Omit<User, 'senha' | 'createdAt' | 'updatedAt' | 'id' | 'email'> }> {
     const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
@@ -50,6 +50,11 @@ export class AuthService {
 
     const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, options)
 
-    return { token }
+    return {
+      token,
+      user: {
+        nome: user.nome
+      }
+    }
   }
 }
