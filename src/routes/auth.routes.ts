@@ -5,6 +5,7 @@ import { AuthController } from '../controllers/auth.controller'
 import { AuthService } from '../services/auth.service'
 import { UserRepository } from '../repositories/user.repository'
 import { authLimiter } from '../middlewares/rate-limit.middleware'
+import { idempotencyMiddleware } from '../middlewares/idempotency.middleware'
 
 const router = Router()
 
@@ -12,7 +13,19 @@ const userRepository = new UserRepository()
 const authService = new AuthService(userRepository)
 const authController = new AuthController(authService)
 
-router.post('/signup', authLimiter, validate(signupSchema), authController.signup)
-router.post('/login', authLimiter, validate(loginSchema), authController.login)
+router.post(
+  '/signup',
+  authLimiter,
+  idempotencyMiddleware,
+  validate(signupSchema),
+  authController.signup,
+)
+router.post(
+  '/login',
+  authLimiter,
+  idempotencyMiddleware,
+  validate(loginSchema),
+  authController.login,
+)
 
 export { router as authRoutes }

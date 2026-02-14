@@ -4,10 +4,12 @@ import helmet from 'helmet'
 import { env } from './utils/config/env'
 import { router } from './routes'
 import { errorMiddleware } from './middlewares/error.middleware'
+import { idempotencyMiddleware } from './middlewares/idempotency.middleware'
 
 const app = express()
 
 app.use(express.json())
+app.use(idempotencyMiddleware)
 app.use(cors())
 app.use(helmet())
 app.disable('x-powered-by')

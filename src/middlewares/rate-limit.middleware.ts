@@ -1,8 +1,8 @@
-import rateLimit, { type Options } from 'express-rate-limit'
+import rateLimit from 'express-rate-limit'
 import { AppError } from '../utils/errors/app.errors'
-import { type Request, type Response, type NextFunction } from 'express'
+import { type Request, type Response, type NextFunction, type RequestHandler } from 'express'
 
-export const authLimiter = rateLimit({
+export const authLimiter: RequestHandler = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: 'draft-7',
@@ -11,7 +11,7 @@ export const authLimiter = rateLimit({
     _req: Request,
     _res: Response,
     next: NextFunction,
-    _options: Options,
+    _options: unknown,
   ) => {
     next(
       new AppError(
@@ -20,4 +20,4 @@ export const authLimiter = rateLimit({
       ),
     )
   },
-})
+}) as RequestHandler
