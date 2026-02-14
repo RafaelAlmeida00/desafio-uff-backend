@@ -7,7 +7,8 @@ RUN apk add --no-cache openssl postgresql-client
 
 RUN npm install -g pnpm
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
+# Não copiamos o pnpm-lock.yaml para evitar conflito de binários Windows/Linux no Alpine
 COPY .env ./
 COPY prisma ./prisma
 
@@ -16,6 +17,9 @@ RUN pnpm config set fetch-retries 5 || true
 RUN pnpm config set fetch-retry-factor 2 || true
 RUN pnpm config set fetch-timeout 600000 || true
 RUN pnpm install
+
+# Garante que o binário do Prisma seja baixado e gerado para Alpine Linux (musl)
+RUN npx prisma generate
 
 COPY src ./src
 COPY tsconfig.json ./

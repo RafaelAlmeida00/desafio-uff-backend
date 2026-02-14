@@ -31,9 +31,12 @@ app.use(router)
 
 app.use(errorMiddleware)
 
-if (require.main === module) {
-  app.listen(env.PORT, () => {
-    console.log(`Servidor rodando na porta ${env.PORT}`)
+console.log(`[Startup] Iniciando servidor... NODE_ENV=${process.env.NODE_ENV}`)
+
+if (require.main === module || process.env.NODE_ENV !== 'test') {
+  const port = env.PORT || 3000
+  app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`)
   })
 }
 
