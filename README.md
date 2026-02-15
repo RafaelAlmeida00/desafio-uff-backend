@@ -66,7 +66,7 @@ Este método configura automaticamente o PostgreSQL e a API.
 1.  **Clone o repositório:**
     ```bash
     git clone <url-do-repositorio>
-    cd desafiouffteste/backend
+    cd <pasta gerada do clone>
     ```
 
 2.  **Configure as variáveis de ambiente:**
