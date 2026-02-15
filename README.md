@@ -66,7 +66,7 @@ Este método configura automaticamente o PostgreSQL e a API.
 1.  **Clone o repositório:**
     ```bash
     git clone <url-do-repositorio>
-    cd desafiouffteste/backend
+    cd <pasta gerada do clone>
     ```
 
 2.  **Configure as variáveis de ambiente:**
@@ -375,9 +375,9 @@ A segurança foi um pilar central no desenvolvimento deste backend:
 9.  **Controller:** Monta a resposta com links **HATEOAS**.
 10. **Response** enviada ao cliente.
 
-### CI/CD
+### Testes
 
-O projeto conta com um pipeline no GitHub Actions (`ci.yml`) que executa automaticamente em Pull Requests e Pushes na main:
+O projeto conta com um sistema de testes automatizado com conexão a um banco de testes no docker:
 1.  Instalação de dependências (pnpm).
 2.  Linting (ESLint).
 3.  Testes Unitários e de Integração (Jest).
