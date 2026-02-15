@@ -4,7 +4,7 @@ import { type Request, type Response, type NextFunction, type RequestHandler } f
 import { logger } from '../utils/config/logger'
 
 export const authLimiter: RequestHandler = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 5 * 60 * 1000,
   limit: 10,
   standardHeaders: 'draft-7',
   legacyHeaders: false,

@@ -11,7 +11,7 @@ const cache = new Map<
   }
 >()
 
-const TWO_MINUTES_IN_MS = 2 * 60 * 1000
+const TWO_MINUTES_IN_MS = 10 * 1000
 
 function getRequestSignature (req: Request): string {
   const bodyString =

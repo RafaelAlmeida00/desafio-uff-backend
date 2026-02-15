@@ -368,3 +368,19 @@ A documentação interativa completa dos endpoints, schemas e exemplos de requis
 
 Após rodar a aplicação, acesse:
 > **http://localhost:3000/api-docs**
+
+---
+
+## Ideias Futuras
+
+Esta seção descreve possíveis melhorias e novas funcionalidades que podem ser implementadas para evoluir a plataforma.
+
+### Funcionalidades
+- **Sistema de Notificação Avançado:** Criar um serviço de notificações que suporte múltiplos canais, como e-mail, push notifications ou integrações.
+- **Cache com Redis:** Integrar o Redis para armazenar em cache dados frequentemente acessados, como sessões de usuário ou tarefas populares, reduzindo a carga no banco de dados e melhorando a latência.
+
+### Segurança
+- **Autenticação via OAuth 2.0:** Permitir que os usuários se autentiquem usando provedores de identidade de terceiros, como Google, GitHub ou Facebook, simplificando o processo de login.
+- **Sistema de Detecção de Intrusão (IDS):** Integrar ferramentas que monitorem o tráfego de rede e os logs em busca de padrões de ataque conhecidos ou atividades suspeitas.
+- **Controle de Acesso Baseado em Papéis (RBAC):** Evoluir o sistema de permissões para um modelo RBAC mais granular, permitindo a criação de diferentes papéis (ex: admin, membro, visualizador) com níveis de acesso distintos.
+- **Soft Delete:** Implementar a exclusão lógica (soft delete) para tarefas e outros recursos, permitindo que os dados sejam recuperados em caso de exclusão acidental e mantendo um histórico de auditoria.
