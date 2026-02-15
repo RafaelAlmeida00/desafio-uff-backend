@@ -22,8 +22,8 @@ A aplicação foi construída seguindo princípios de **Clean Code**, **Arquitet
 - **Framework:** Express 5.x
 - **Banco de Dados:** PostgreSQL 16
 - **ORM:** Prisma (com Trigramação de colunas)
-- **Autenticação:** JWT (JSON Web Token)
-- **Segurança:** Bcrypt (Hash de senha), Helmet, CORS, Rate Limiting
+- **Autenticação:** JWT (JSON Web Token) via Cookies HTTP-only
+- **Segurança:** Bcrypt (Hash de senha), Helmet, CORS, Rate Limiting, Prevenção de XSS
 - **Validação:** Zod
 - **Documentação:** Swagger / OpenAPI 3.0
 - **Testes:** Jest + Supertest
@@ -161,32 +161,23 @@ if (!validPassword) {
 }
 ```
 
-### 2. Autenticação Stateless (JWT)
-Utilizamos JSON Web Tokens para autenticação. O servidor não guarda sessão; toda a informação necessária está assinada criptograficamente no token.
+### 2. Autenticação Segura com Cookies (JWT)
+Em vez de `localStorage`, a autenticação é baseada em **cookies HTTP-only**.
 
 **Como funciona:**
-1. O usuário loga e recebe um token.
-2. O token contém o ID do usuário (`sub`) e data de expiração (`exp`).
-3. Em cada requisição, o cliente envia o header `Authorization: Bearer <token>`.
-4. O middleware valida a assinatura usando o `JWT_SECRET`.
+1.  Após o login, o servidor envia o token JWT para o cliente dentro de um cookie com as flags `HttpOnly`, `Secure` e `SameSite=Strict`.
+2.  **`HttpOnly`:** Impede que o cookie seja acessado por JavaScript no frontend, mitigando o roubo de token por ataques XSS.
+3.  **`Secure`:** Garante que o cookie só seja enviado em requisições HTTPS.
+4.  **`SameSite=Strict`:** Protege contra ataques CSRF.
+5.  O navegador se encarrega de enviar o cookie automaticamente em cada requisição subsequente à API.
 
-**Exemplo no Código (`src/middlewares/auth.middleware.ts`):**
-```typescript
-try {
-  // Verifica a assinatura e validade do token
-  const payload = jwt.verify(token, env.JWT_SECRET, {
-    algorithms: ['HS256'], // Força o algoritmo para evitar ataques de downgrade
-  }) as jwt.JwtPayload
+### 3. Prevenção contra XSS (Cross-Site Scripting)
+A principal defesa contra XSS é feita em duas camadas:
 
-  // Injeta o ID do usuário na requisição para uso nos controllers
-  req.userId = Number(payload.sub)
-  next()
-} catch {
-  throw new AppError('Token inválido ou expirado', 401)
-}
-```
+*   **Headers de Segurança com Helmet:** Utilizamos a biblioteca `helmet` para configurar headers HTTP que instruem o navegador a ativar proteções. Isso inclui `X-Content-Type-Options: nosniff` e `X-XSS-Protection`.
+*   **Validação de Input com Zod:** Esta é a camada mais importante. Nenhum dado entra na lógica de negócio ou é salvo no banco de dados sem passar por uma validação rigorosa. Ao definir esquemas estritos, garantimos que apenas dados no formato esperado sejam processados, descartando qualquer tentativa de injetar scripts ou HTML malicioso.
 
-### 3. Validação Estrita de Dados (Zod)
+### 4. Validação Estrita de Dados (Zod)
 Nenhum dado entra no controller sem passar por um schema de validação. Isso previne injeção de dados maliciosos e garante a integridade dos tipos.
 
 **Como funciona:**
@@ -201,14 +192,15 @@ export const signupSchema = z.object({
 })
 ```
 
-### 4. Proteção contra Força Bruta (Rate Limiting)
+### 5. Proteção contra Força Bruta (Rate Limiting)
 Para evitar que atacantes tentem adivinhar senhas testando milhares de combinações, limitamos o número de requisições nas rotas de autenticação.
 
 **Implementação:**
 Utilizamos o `express-rate-limit` configurado para permitir, por exemplo, apenas 5 tentativas de login a cada 15 minutos por IP.
 
-### 5. Idempotência
+### 6. Idempotência
 Implementamos um middleware de idempotência para garantir que, se o cliente enviar a mesma requisição de criação (POST) múltiplas vezes (por falha de rede, por exemplo), a operação não seja duplicada indevidamente, garantindo consistência nos dados.
+
 
 ---
 
