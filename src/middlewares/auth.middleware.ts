@@ -11,18 +11,11 @@ declare module 'express' {
 }
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization
+  const token = req.cookies?.token
 
-  if (!authHeader) {
-    logger.warn({ req }, 'Tentativa de acesso sem autorização')
+  if (!token) {
+    logger.warn({ req }, 'Tentativa de acesso sem cookie de autorização')
     throw new AppError('Não autorizado', 401)
-  }
-
-  const [scheme, token] = authHeader.split(' ')
-
-  if (scheme !== 'Bearer' || !token) {
-    logger.warn({ req }, 'Token de autorização malformado')
-    throw new AppError('Token malformado', 401)
   }
 
   try {
@@ -33,8 +26,7 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
     req.userId = Number(payload.sub)
     next()
   } catch (err) {
-    logger.warn({ req }, 'Token de autorização inválido')
+    logger.warn({ req }, 'Token de cookie inválido ou expirado')
     throw new AppError('Token inválido ou expirado', 401)
   }
-
 }

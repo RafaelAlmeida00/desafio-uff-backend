@@ -28,11 +28,16 @@ export class AuthService {
     return userWithoutPassword
   }
 
-  async login(data: LoginInput): Promise<{ token: string, user: Omit<User, 'senha' | 'createdAt' | 'updatedAt' | 'id' | 'email'> }> {
+  async login(
+    data: LoginInput,
+  ): Promise<{ token: string; user: Omit<User, 'senha'> }> {
     const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
-      logger.warn({ email: data.email }, 'Tentativa de login com email não cadastrado')
+      logger.warn(
+        { email: data.email },
+        'Tentativa de login com email não cadastrado',
+      )
       await bcrypt.compare(data.senha, '$2b$10$dummyhashfortimingattackpreven')
       throw new AppError('Credenciais inválidas', 401)
     }
@@ -49,12 +54,12 @@ export class AuthService {
     }
 
     const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, options)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { senha, ...userWithoutPassword } = user
 
     return {
       token,
-      user: {
-        nome: user.nome
-      }
+      user: userWithoutPassword,
     }
   }
 }

@@ -6,12 +6,13 @@ import { AuthService } from '../services/auth.service'
 import { UserRepository } from '../repositories/user.repository'
 import { authLimiter } from '../middlewares/rate-limit.middleware'
 import { idempotencyMiddleware } from '../middlewares/idempotency.middleware'
+import { authMiddleware } from '../middlewares/auth.middleware'
 
 const router = Router()
 
 const userRepository = new UserRepository()
 const authService = new AuthService(userRepository)
-const authController = new AuthController(authService)
+const authController = new AuthController(authService, userRepository)
 
 /**
  * @swagger
@@ -74,6 +75,39 @@ router.post(
   idempotencyMiddleware,
   validate(loginSchema),
   (req, res, next) => authController.login(req, res, next),
+)
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Encerra a sessão do usuário (limpa o cookie)
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Logout realizado com sucesso
+ */
+router.post(
+  '/logout',
+  (req, res, next) => authController.logout(req, res, next)
+)
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Retorna os dados do usuário autenticado baseado no cookie
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Dados do usuário retornados com sucesso
+ *       401:
+ *         description: Não autorizado (Cookie ausente ou inválido)
+ */
+router.get(
+  '/me',
+  authMiddleware,
+  (req, res, next) => authController.me(req, res, next)
 )
 
 export { router as authRoutes }

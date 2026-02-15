@@ -1,6 +1,9 @@
 import pino from 'pino';
 import { env } from './env';
 import { context, trace } from '@opentelemetry/api';
+import path from 'path';
+
+const ext = __filename.endsWith('.ts') ? 'ts' : 'js'; 
 
 const targets: pino.TransportTargetOptions[] = [
   {
@@ -16,7 +19,7 @@ const targets: pino.TransportTargetOptions[] = [
 
 if (env.NODE_ENV !== 'test') {
   targets.push({
-    target: '../lib/pino.prisma.transport.js',
+    target: path.resolve(__dirname, `../lib/pino.prisma.transport.${ext}`),
     options: {},
     level: 'info',
   });

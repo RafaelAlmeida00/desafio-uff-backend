@@ -1,5 +1,6 @@
 import build from 'pino-abstract-transport';
 import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 
 interface PinoLog {
   level: number;
@@ -21,7 +22,7 @@ export default function () {
         data: {
           level: levelStr,
           message: msg || '',
-          metadata: metadata as Record<string, unknown>,
+          metadata: metadata  as Prisma.InputJsonValue
         },
       });
     }

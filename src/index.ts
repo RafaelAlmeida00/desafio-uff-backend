@@ -9,18 +9,25 @@ import swaggerUi from 'swagger-ui-express'
 import { swaggerSpec } from './utils/config/swagger'
 import { pinoHttp } from 'pino-http'
 import { logger } from './utils/config/logger'
+import cookieParser from 'cookie-parser'
 
 const app = express()
 
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}));
+  origin: 'http://localhost:5173', 
+  credentials: true,              
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+}))
+
+app.use(cookieParser())
 
 app.use(pinoHttp({ logger} ))
 
 app.use(express.json())
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}))
+
 app.disable('x-powered-by')
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))

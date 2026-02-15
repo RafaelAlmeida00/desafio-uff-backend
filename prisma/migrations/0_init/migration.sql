@@ -20,6 +20,21 @@ CREATE TABLE "tasks" (
     CONSTRAINT "tasks_TSK_USR_ID_fkey" FOREIGN KEY ("TSK_USR_ID") REFERENCES "users" ("USR_ID") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- CreateTable logs
+CREATE TABLE "logs" (
+    "LOG_ID" SERIAL NOT NULL PRIMARY KEY,
+    "LOG_LEVEL" VARCHAR(20) NOT NULL,
+    "LOG_MESSAGE" TEXT NOT NULL,
+    "LOG_METADATA" JSONB,
+    "LOG_TIMESTAMP" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateIndex para busca rápida por nível de erro
+CREATE INDEX "logs_LOG_LEVEL_idx" ON "logs"("LOG_LEVEL");
+
+-- CreateIndex para buscas por data (útil para auditoria)
+CREATE INDEX "logs_LOG_TIMESTAMP_idx" ON "logs"("LOG_TIMESTAMP");
+
 -- CreateIndex
 CREATE INDEX "tasks_TSK_USR_ID_idx" ON "tasks"("TSK_USR_ID");
 
