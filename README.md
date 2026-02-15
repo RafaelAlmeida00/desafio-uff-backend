@@ -249,31 +249,53 @@ backend/
 
 ## Modelagem do Banco de Dados
 
-O banco de dados utiliza uma convenção de **Trigramação**, onde cada tabela possui um prefixo de 3 letras (ex: `USR_` para users) para garantir unicidade global de colunas.
+O schema do banco de dados é gerenciado pelo Prisma e pode ser encontrado em [`prisma/schema.prisma`](./prisma/schema.prisma).
 
-### Diagrama Simplificado
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement()) @map("USR_ID")
+  nome      String   @db.VarChar(100)              @map("USR_NOME")
+  email     String   @unique @db.VarChar(255)      @map("USR_EMAIL")
+  senha     String   @db.VarChar(255)              @map("USR_SENHA")
+  createdAt DateTime @default(now())               @map("USR_CREATED_AT")
+  updatedAt DateTime @updatedAt                    @map("USR_UPDATED_AT")
+  tasks     Task[]
+
+  @@map("users")
+}
+
+model Task {
+  id        Int      @id @default(autoincrement()) @map("TSK_ID")
+  titulo    String   @db.VarChar(200)              @map("TSK_TITULO")
+  descricao String?  @db.Text                      @map("TSK_DESCRICAO")
+  status    String   @default("pendente") @db.VarChar(20) @map("TSK_STATUS")
+  userId    Int                                    @map("TSK_USR_ID")
+  createdAt DateTime @default(now())               @map("TSK_CREATED_AT")
+  updatedAt DateTime @updatedAt                    @map("TSK_UPDATED_AT")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("tasks")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  level     String
+  message   String
+  metadata  Json?
+  timestamp DateTime @default(now())
+}
 ```
-┌───────────────────┐       ┌───────────────────┐
-│       users       │       │       tasks       │
-├───────────────────┤       ├───────────────────┤
-│ USR_ID (PK)       │1─────N│ TSK_ID (PK)       │
-│ USR_NOME          │       │ TSK_TITULO        │
-│ USR_EMAIL (UQ)    │       │ TSK_DESCRICAO     │
-│ USR_SENHA         │       │ TSK_STATUS        │
-│ USR_CREATED_AT    │       │ TSK_USR_ID (FK)   │
-└───────────────────┘       └───────────────────┘
-```
-
-### Tabelas
-
-1.  **users (`USR`)**: Armazena os dados de acesso.
-    *   `USR_EMAIL`: Índice único para login rápido e garantia de unicidade.
-    *   `USR_SENHA`: Armazena apenas o hash (bcrypt).
-
-2.  **tasks (`TSK`)**: Armazena as tarefas.
-    *   `TSK_USR_ID`: Chave estrangeira ligada ao usuário. Possui índice para otimizar a listagem.
-    *   `TSK_STATUS`: String ('pendente' ou 'concluida'). Possui índice composto com `USR_ID` para filtros.
 
 ---
 
