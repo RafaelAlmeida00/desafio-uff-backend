@@ -353,9 +353,9 @@ A segurança foi um pilar central no desenvolvimento deste backend:
 9.  **Controller:** Monta a resposta com links **HATEOAS**.
 10. **Response** enviada ao cliente.
 
-### CI/CD
+### Testes
 
-O projeto conta com um pipeline no GitHub Actions (`ci.yml`) que executa automaticamente em Pull Requests e Pushes na main:
+O projeto conta com um sistema de testes automatizado com conexão a um banco de testes no docker:
 1.  Instalação de dependências (pnpm).
 2.  Linting (ESLint).
 3.  Testes Unitários e de Integração (Jest).
