@@ -15,7 +15,7 @@
     "db:reset": "prisma migrate reset --force",
     "db:seed": "docker-compose exec backend npx prisma db seed",
     "db:studio": "docker-compose exec backend npx prisma studio",
-    "test": "jest --coverage",
+    "test": "jest --runInBand --coverage",
     "test:watch": "jest --watch"
   },
   "keywords": [],

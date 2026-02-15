@@ -70,8 +70,15 @@ export class AuthController {
 
       const user = await this.userRepository.findById(userId)
 
+      if (!user) {
+        throw new AppError('Usuário não encontrado', 404)
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { senha, ...userWithoutPassword } = user
+
       res.status(200).json({
-        data: user,
+        data: userWithoutPassword,
       })
     } catch (error) {
       next(error)

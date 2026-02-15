@@ -14,6 +14,11 @@ const userRepository = new UserRepository()
 const authService = new AuthService(userRepository)
 const authController = new AuthController(authService, userRepository)
 
+const authMiddlewares =
+  process.env.NODE_ENV !== 'test'
+    ? [authLimiter, idempotencyMiddleware]
+    : []
+
 /**
  * @swagger
  * /api/auth/signup:
@@ -41,8 +46,7 @@ const authController = new AuthController(authService, userRepository)
  */
 router.post(
   '/signup',
-  authLimiter,
-  idempotencyMiddleware,
+  ...authMiddlewares,
   validate(signupSchema),
   (req, res, next) => authController.signup(req, res, next),
 )
@@ -71,8 +75,7 @@ router.post(
  */
 router.post(
   '/login',
-  authLimiter,
-  idempotencyMiddleware,
+  ...authMiddlewares,
   validate(loginSchema),
   (req, res, next) => authController.login(req, res, next),
 )

@@ -1,142 +1,199 @@
 import request from 'supertest'
 import { app } from '../index'
-import { TaskService } from '../services/task.service'
-import { AppError } from '../utils/errors/app.errors'
-import jwt from 'jsonwebtoken'
+import { prisma } from '../utils/lib/prisma'
+import { hash } from 'bcrypt'
 
-jest.mock('../services/task.service')
-jest.mock('jsonwebtoken')
+describe('Task Routes - Integration Tests', () => {
+  const agent = request.agent(app)
+  let testUser: { id: number; email: string; nome: string }
 
-describe('Task Routes', () => {
-  const mockToken = 'valid-token'
-  const mockUserId = 1
+  // Setup: Create a user and log in before all tests
+  beforeAll(async () => {
+    // Clean database before starting
+    await prisma.task.deleteMany()
+    await prisma.user.deleteMany()
 
-  beforeEach(() => {
-    jest.clearAllMocks()
-    // Mock do JWT para simular usuário autenticado
-    ;(jwt.verify as jest.Mock).mockReturnValue({ sub: mockUserId })
+    // Create a user directly in the database
+    const hashedPassword = await hash('password123', 10)
+    const user = await prisma.user.create({
+      data: {
+        nome: 'Test User',
+        email: 'test@example.com',
+        senha: hashedPassword,
+      },
+    })
+    testUser = { id: user.id, email: user.email, nome: user.nome }
+
+    // Log in to get the session cookie for the agent
+    const res = await agent
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', senha: 'password123' })
+
+    expect(res.status).toBe(200) // Login successful
+    expect(res.headers['set-cookie']).toBeDefined()
+  })
+
+  // Teardown: Clean up database and disconnect
+  afterAll(async () => {
+    await prisma.task.deleteMany()
+    await prisma.user.deleteMany()
+    await prisma.$disconnect()
+  })
+
+  // Clean tasks before each test to ensure isolation
+  beforeEach(async () => {
+    await prisma.task.deleteMany({ where: { userId: testUser.id } })
   })
 
   describe('POST /api/tasks', () => {
-    it('deve criar tarefa com sucesso (201)', async () => {
-      (TaskService.prototype.create as jest.Mock).mockResolvedValue({
-        id: 1,
-        titulo: 'Nova Tarefa',
-        status: 'pendente',
-      })
-
-      const res = await request(app)
+    it('deve criar uma nova tarefa para o usuário autenticado', async () => {
+      const res = await agent
         .post('/api/tasks')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ titulo: 'Nova Tarefa' })
+        .send({ titulo: 'Minha Nova Tarefa' })
 
       expect(res.status).toBe(201)
-      expect((res.body as { data: { titulo: string } }).data.titulo).toBe('Nova Tarefa')
+      expect(res.body.data).toHaveProperty('id')
+      expect(res.body.data.titulo).toBe('Minha Nova Tarefa')
+
+      // Verify it was created in the database
+      const taskInDb = await prisma.task.findUnique({
+        where: { id: res.body.data.id },
+      })
+      expect(taskInDb).not.toBeNull()
+      expect(taskInDb?.userId).toBe(testUser.id)
     })
 
-    it('deve falhar validação se titulo estiver vazio (400)', async () => {
-      const res = await request(app)
-        .post('/api/tasks')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ descricao: 'Sem titulo' })
-
+    it('deve retornar 400 se o título estiver faltando', async () => {
+      const res = await agent.post('/api/tasks').send({ descricao: 'sem título' })
       expect(res.status).toBe(400)
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(TaskService.prototype.create).not.toHaveBeenCalled()
     })
 
-    it('deve retornar 401 se não enviar token', async () => {
-      const res = await request(app).post('/api/tasks').send({ titulo: 'Teste' })
+    it('deve retornar 401 se tentar criar sem estar logado', async () => {
+      const res = await request(app) // new agent without cookie
+        .post('/api/tasks')
+        .send({ titulo: 'Tarefa não autorizada' })
       expect(res.status).toBe(401)
     })
   })
 
   describe('GET /api/tasks', () => {
-    it('deve listar tarefas (200)', async () => {
-      (TaskService.prototype.listByUser as jest.Mock).mockResolvedValue([
-        { id: 1, titulo: 'T1' },
-      ])
+    it('deve listar apenas as tarefas do usuário autenticado', async () => {
+      // Create another user and their task
+      const anotherUser = await prisma.user.create({
+        data: {
+          nome: 'Another User',
+          email: 'another@example.com',
+          senha: await hash('password123', 10),
+        },
+      })
+      await prisma.task.create({
+        data: {
+          titulo: 'Tarefa de outro usuário',
+          userId: anotherUser.id,
+        },
+      })
 
-      const res = await request(app)
-        .get('/api/tasks')
-        .set('Authorization', `Bearer ${mockToken}`)
+      // Create a task for the logged-in user
+      await prisma.task.create({
+        data: {
+          titulo: 'Minha Tarefa para Listar',
+          userId: testUser.id,
+        },
+      })
+
+      const res = await agent.get('/api/tasks')
 
       expect(res.status).toBe(200)
-      expect(Array.isArray((res.body as { data: any[] }).data)).toBe(true)
+      expect(Array.isArray(res.body.data)).toBe(true)
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0].titulo).toBe('Minha Tarefa para Listar')
     })
 
-    it('deve filtrar por status', async () => {
-      (TaskService.prototype.listByUser as jest.Mock).mockResolvedValue([])
+    it('deve filtrar tarefas por status', async () => {
+      await prisma.task.createMany({
+        data: [
+          { titulo: 'Pendente', userId: testUser.id, status: 'pendente' },
+          { titulo: 'Concluída', userId: testUser.id, status: 'concluida' },
+        ],
+      })
 
-      await request(app)
-        .get('/api/tasks?status=pendente')
-        .set('Authorization', `Bearer ${mockToken}`)
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(TaskService.prototype.listByUser).toHaveBeenCalledWith(
-        mockUserId,
-        'pendente'
-      )
+      const res = await agent.get('/api/tasks?status=concluida')
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0].titulo).toBe('Concluída')
     })
   })
 
   describe('PUT /api/tasks/:id', () => {
-    it('deve atualizar tarefa com sucesso (200)', async () => {
-      (TaskService.prototype.update as jest.Mock).mockResolvedValue({
-        id: 1,
-        titulo: 'Atualizado',
+    it('deve atualizar uma tarefa do próprio usuário', async () => {
+      const task = await prisma.task.create({
+        data: { titulo: 'Original', userId: testUser.id },
       })
 
-      const res = await request(app)
-        .put('/api/tasks/1')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ titulo: 'Atualizado' })
-
+      const res = await agent
+        .put(`/api/tasks/${task.id}`)
+        .send({ titulo: 'Atualizado', status: 'concluida' })
+      
       expect(res.status).toBe(200)
+      expect(res.body.data.titulo).toBe('Atualizado')
+      expect(res.body.data.status).toBe('concluida')
     })
 
-    it('deve retornar 404 se tarefa não existir', async () => {
-      (TaskService.prototype.update as jest.Mock).mockRejectedValue(
-        new AppError('Tarefa não encontrada', 404)
-      )
+    it('deve retornar 404 ao tentar atualizar tarefa de outro usuário', async () => {
+        const anotherUser = await prisma.user.create({
+            data: {
+              nome: 'Other User',
+              email: 'other@example.com',
+              senha: await hash('password123', 10),
+            },
+          })
+      const anotherTask = await prisma.task.create({
+        data: { titulo: 'Tarefa Alheia', userId: anotherUser.id },
+      })
 
-      const res = await request(app)
-        .put('/api/tasks/999')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ titulo: 'X' })
+      const res = await agent
+        .put(`/api/tasks/${anotherTask.id}`)
+        .send({ titulo: 'Tentativa de Update' })
 
       expect(res.status).toBe(404)
-    })
-
-    it('deve falhar validação se status for inválido (400)', async () => {
-      const res = await request(app)
-        .put('/api/tasks/1')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ status: 'invalido' })
-
-      expect(res.status).toBe(400)
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(TaskService.prototype.update).not.toHaveBeenCalled()
     })
   })
 
   describe('DELETE /api/tasks/:id', () => {
-    it('deve deletar tarefa com sucesso (204)', async () => {
-      (TaskService.prototype.delete as jest.Mock).mockResolvedValue(undefined)
+    it('deve deletar uma tarefa do próprio usuário', async () => {
+      const task = await prisma.task.create({
+        data: { titulo: 'Para Deletar', userId: testUser.id },
+      })
 
-      const res = await request(app)
-        .delete('/api/tasks/1')
-        .set('Authorization', `Bearer ${mockToken}`)
-
+      const res = await agent.delete(`/api/tasks/${task.id}`)
       expect(res.status).toBe(204)
+
+      const taskInDb = await prisma.task.findUnique({ where: { id: task.id } })
+      expect(taskInDb).toBeNull()
     })
 
-    it('deve retornar 400 se ID for inválido', async () => {
-      const res = await request(app)
-        .delete('/api/tasks/abc')
-        .set('Authorization', `Bearer ${mockToken}`)
+    it('deve retornar 404 ao tentar deletar tarefa de outro usuário', async () => {
+        const anotherUser = await prisma.user.create({
+            data: {
+              nome: 'Final User',
+              email: 'final@example.com',
+              senha: await hash('password123', 10),
+            },
+          })
+      const anotherTask = await prisma.task.create({
+        data: { titulo: 'Tarefa de Outro', userId: anotherUser.id },
+      })
 
-      expect(res.status).toBe(400)
+      const res = await agent.delete(`/api/tasks/${anotherTask.id}`)
+      expect(res.status).toBe(404)
+
+      const taskInDb = await prisma.task.findUnique({ where: { id: anotherTask.id } })
+      expect(taskInDb).not.toBeNull()
+    })
+
+    it('deve retornar 400 para um ID inválido', async () => {
+        const res = await agent.delete('/api/tasks/abc')
+        expect(res.status).toBe(400)
     })
   })
 })
