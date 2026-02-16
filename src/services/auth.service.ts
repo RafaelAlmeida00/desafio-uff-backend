@@ -1,11 +1,10 @@
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
+import type { User } from '@prisma/client'
 import { UserRepository } from '../repositories/user.repository'
 import { AppError } from '../utils/errors/app.errors'
 import { env } from '../utils/config/env'
 import { SignupInput, LoginInput } from '../utils/schemas/auth.schema'
-import type { User } from '@prisma/client'
-import { SignOptions } from 'jsonwebtoken'
 import { logger } from '../utils/config/logger'
 
 export class AuthService {
@@ -24,20 +23,20 @@ export class AuthService {
       senha: hashedPassword,
     })
 
-    const { senha, ...userWithoutPassword } = user
-    return userWithoutPassword
+    return {
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }
   }
 
-  async login(
-    data: LoginInput,
-  ): Promise<{ token: string; user: Omit<User, 'senha'> }> {
+  async login(data: LoginInput): Promise<{ token: string; user: Omit<User, 'senha'> }> {
     const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
-      logger.warn(
-        { email: data.email },
-        'Tentativa de login com email não cadastrado',
-      )
+      logger.warn({ email: data.email }, 'Tentativa de login com email não cadastrado')
       await bcrypt.compare(data.senha, '$2b$10$dummyhashfortimingattackpreven')
       throw new AppError('Credenciais inválidas', 401)
     }
@@ -54,12 +53,16 @@ export class AuthService {
     }
 
     const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, options)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { senha, ...userWithoutPassword } = user
 
     return {
       token,
-      user: userWithoutPassword,
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     }
   }
 }

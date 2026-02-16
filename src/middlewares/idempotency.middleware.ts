@@ -11,12 +11,14 @@ const cache = new Map<
   }
 >()
 
-const TWO_MINUTES_IN_MS = 10 * 1000
+const TWO_MINUTES_IN_MS = 2 * 60 * 1000
 
-function getRequestSignature (req: Request): string {
+function getRequestSignature(req: Request): string {
   const bodyString =
     req.body && Object.keys(req.body as object).length > 0 ? JSON.stringify(req.body) : ''
-  const signature = `${req.method}|${req.path}|${bodyString}`
+  const userKey = typeof req.userId === 'number' ? String(req.userId) : 'anonymous'
+  const ipKey = req.ip ?? 'unknown'
+  const signature = `${req.method}|${req.path}|${userKey}|${ipKey}|${bodyString}`
   return crypto.createHash('sha256').update(signature).digest('hex')
 }
 
@@ -35,9 +37,7 @@ export const idempotencyMiddleware = (
 
   if (cached) {
     if (cached.inProgress) {
-      res
-        .status(429)
-        .json({ message: 'Requisição em andamento, tente novamente mais tarde.' })
+      res.status(429).json({ message: 'Requisição em andamento, tente novamente mais tarde.' })
       return
     }
 
@@ -53,25 +53,24 @@ export const idempotencyMiddleware = (
 
   cache.set(signature, { timestamp: now, inProgress: true })
 
-  const originalJson = res.json
+  const originalJson = res.json.bind(res)
   let responseBodyToCache: unknown
-  let statusCodeToCache: number
+  let statusCodeToCache = res.statusCode
 
   res.json = (body: unknown): Response => {
     responseBodyToCache = body
     statusCodeToCache = res.statusCode
-    return originalJson.call(res, body)
+    return originalJson(body)
   }
 
   res.on('finish', () => {
     if (responseBodyToCache !== undefined) {
-      const finalCacheEntry = {
+      cache.set(signature, {
         timestamp: now,
         inProgress: false,
         responseBody: responseBodyToCache,
         statusCode: statusCodeToCache || res.statusCode,
-      }
-      cache.set(signature, finalCacheEntry)
+      })
 
       setTimeout(() => {
         const currentCached = cache.get(signature)
@@ -79,9 +78,10 @@ export const idempotencyMiddleware = (
           cache.delete(signature)
         }
       }, TWO_MINUTES_IN_MS)
-    } else {
-      cache.delete(signature)
+      return
     }
+
+    cache.delete(signature)
   })
 
   next()

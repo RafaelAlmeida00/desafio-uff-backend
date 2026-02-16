@@ -14,7 +14,10 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
   const token = req.cookies?.token
 
   if (!token) {
-    logger.warn({ req }, 'Tentativa de acesso sem cookie de autorização')
+    logger.warn(
+      { method: req.method, path: req.originalUrl, ip: req.ip },
+      'Tentativa de acesso sem cookie de autorização',
+    )
     throw new AppError('Não autorizado', 401)
   }
 
@@ -25,8 +28,11 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
 
     req.userId = Number(payload.sub)
     next()
-  } catch (err) {
-    logger.warn({ req }, 'Token de cookie inválido ou expirado')
+  } catch {
+    logger.warn(
+      { method: req.method, path: req.originalUrl, ip: req.ip },
+      'Token de cookie inválido ou expirado',
+    )
     throw new AppError('Token inválido ou expirado', 401)
   }
 }

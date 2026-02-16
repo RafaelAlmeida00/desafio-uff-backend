@@ -30,7 +30,6 @@ A aplicação foi construída seguindo princípios de **Clean Code**, **Arquitet
 - **Logs:** Pino (Estruturados e persistidos no banco)
 - **Telemetria:** OpenTelemetry + Uptrace
 - **Infraestrutura:** Docker & Docker Compose
-- **CI/CD:** GitHub Actions
 
 ---
 
@@ -65,7 +64,7 @@ Este método configura automaticamente o PostgreSQL e a API.
 
 1.  **Clone o repositório:**
     ```bash
-    git clone <url-do-repositorio>
+    git clone https://github.com/RafaelAlmeida00/desafio-uff-backend.git
     cd <pasta gerada do clone>
     ```
 
@@ -165,10 +164,10 @@ if (!validPassword) {
 Em vez de `localStorage`, a autenticação é baseada em **cookies HTTP-only**.
 
 **Como funciona:**
-1.  Após o login, o servidor envia o token JWT para o cliente dentro de um cookie com as flags `HttpOnly`, `Secure` e `SameSite=Strict`.
+1.  Após o login, o servidor envia o token JWT para o cliente dentro de um cookie com as flags `HttpOnly`, `Secure` \(em produ��o\) e `SameSite=Lax`.
 2.  **`HttpOnly`:** Impede que o cookie seja acessado por JavaScript no frontend, mitigando o roubo de token por ataques XSS.
 3.  **`Secure`:** Garante que o cookie só seja enviado em requisições HTTPS.
-4.  **`SameSite=Strict`:** Protege contra ataques CSRF.
+4.  **`SameSite=Lax`:** Reduz risco de CSRF sem quebrar o fluxo de navega��o normal.
 5.  O navegador se encarrega de enviar o cookie automaticamente em cada requisição subsequente à API.
 
 ### 3. Prevenção contra XSS (Cross-Site Scripting)
@@ -226,7 +225,6 @@ O projeto segue uma **Arquitetura em Camadas** (Controller → Service → Repos
 
 ```
 backend/
-├── .github/workflows/      # Pipelines de CI/CD (Testes, Lint)
 ├── prisma/                 # Schema do banco de dados e migrations
 ├── src/
 │   ├── controllers/        # Interface HTTP: Recebe requisições, chama services, retorna HATEOAS
@@ -316,7 +314,7 @@ A API segue o padrão REST e implementa HATEOAS, retornando links de navegação
 
 ### Tarefas (`/api/tasks`) - **Rotas Protegidas**
 
-Todas as rotas abaixo exigem header `Authorization: Bearer <token>`.
+Todas as rotas abaixo exigem o cookie HTTP-only `token` enviado automaticamente pelo navegador.
 
 *   **POST `/`**
     *   **Função:** Cria uma nova tarefa.
@@ -406,3 +404,4 @@ Esta seção descreve possíveis melhorias e novas funcionalidades que podem ser
 - **Sistema de Detecção de Intrusão (IDS):** Integrar ferramentas que monitorem o tráfego de rede e os logs em busca de padrões de ataque conhecidos ou atividades suspeitas.
 - **Controle de Acesso Baseado em Papéis (RBAC):** Evoluir o sistema de permissões para um modelo RBAC mais granular, permitindo a criação de diferentes papéis (ex: admin, membro, visualizador) com níveis de acesso distintos.
 - **Soft Delete:** Implementar a exclusão lógica (soft delete) para tarefas e outros recursos, permitindo que os dados sejam recuperados em caso de exclusão acidental e mantendo um histórico de auditoria.
+

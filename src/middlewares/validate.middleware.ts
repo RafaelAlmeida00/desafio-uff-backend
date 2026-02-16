@@ -8,7 +8,10 @@ export function validate(schema: ZodSchema) {
     const result = schema.safeParse(req.body)
     if (!result.success) {
       const errors = result.error.issues.map(e => e.message)
-      logger.warn({ req, errors }, 'Validação de dados falhou')
+      logger.warn(
+        { method: req.method, path: req.originalUrl, ip: req.ip, errorCount: errors.length },
+        'Validação de dados falhou',
+      )
       throw new AppError('Dados inválidos', 400, errors)
     }
     req.body = result.data
