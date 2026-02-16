@@ -7,7 +7,7 @@
     "lint": "npx eslint ./src/**",
     "lint:fix": "npx eslint ./src/** --fix",
     "start": "tsx watch src/index.ts",
-    "build": "tsc src/index.ts --outDir dist",
+    "build": "tsc -p tsconfig.json",
     "prepare": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "docker-compose exec backend npx prisma migrate dev",
