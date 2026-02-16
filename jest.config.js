@@ -4,5 +4,6 @@ module.exports = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   globalSetup: '<rootDir>/jest.global-setup.ts',
   globalTeardown: '<rootDir>/jest.global-teardown.ts',
-  testTimeout: 60000, // 60 seconds
-};
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/__dist_project/'],
+  testTimeout: 60000,
+}

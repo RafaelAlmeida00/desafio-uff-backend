@@ -1,7 +1,4 @@
-// jest.setup.js
+const { config } = require('dotenv')
+const { resolve } = require('path')
 
-import { config } from 'dotenv';
-import { resolve } from 'path';
-
-// Load environment variables from .env.test file
-config({ path: resolve(process.cwd(), '.env.test') });
+config({ path: resolve(process.cwd(), '.env.test') })
