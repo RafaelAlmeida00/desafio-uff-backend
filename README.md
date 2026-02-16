@@ -182,7 +182,7 @@ Nenhum dado entra no controller sem passar por um schema de validação. Isso pr
 **Como funciona:**
 Um middleware intercepta a requisição, valida o corpo contra um schema Zod e, se falhar, retorna erro 400 imediatamente. Se passar, ele "limpa" o corpo, removendo campos desconhecidos.
 
-**Exemplo no Código (`src/schemas/auth.schema.ts`):**
+**Exemplo no Código (`src/utils/schemas/auth.schema.ts`):**
 ```typescript
 // Definição do Schema
 export const signupSchema = z.object({
@@ -309,7 +309,7 @@ A API segue o padrão REST e implementa HATEOAS, retornando links de navegação
     *   **Regra:** Verifica duplicidade de e-mail antes de criar.
 
 *   **POST `/login`**
-    *   **Função:** Autentica o usuário e retorna um JWT.
+    *   **Função:** Autentica o usuário e define o cookie HTTP-only com JWT na resposta.
     *   **Segurança:** Proteção contra timing attacks (sempre executa comparação de hash).
 
 ### Tarefas (`/api/tasks`) - **Rotas Protegidas**
@@ -404,4 +404,3 @@ Esta seção descreve possíveis melhorias e novas funcionalidades que podem ser
 - **Sistema de Detecção de Intrusão (IDS):** Integrar ferramentas que monitorem o tráfego de rede e os logs em busca de padrões de ataque conhecidos ou atividades suspeitas.
 - **Controle de Acesso Baseado em Papéis (RBAC):** Evoluir o sistema de permissões para um modelo RBAC mais granular, permitindo a criação de diferentes papéis (ex: admin, membro, visualizador) com níveis de acesso distintos.
 - **Soft Delete:** Implementar a exclusão lógica (soft delete) para tarefas e outros recursos, permitindo que os dados sejam recuperados em caso de exclusão acidental e mantendo um histórico de auditoria.
-
