@@ -16,6 +16,7 @@ export default async () => {
       execSync('docker-compose exec -T postgres pg_isready -U desafio_user -d desafio_db', { stdio: 'ignore' });
       console.log('Database is ready!');
       break;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       retries--;
       console.log(`Database not ready, retrying... (${retries} attempts left)`);
