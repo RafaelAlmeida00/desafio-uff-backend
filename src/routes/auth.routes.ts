@@ -5,7 +5,6 @@ import { AuthController } from '../controllers/auth.controller'
 import { AuthService } from '../services/auth.service'
 import { UserRepository } from '../repositories/user.repository'
 import { authLimiter } from '../middlewares/rate-limit.middleware'
-import { idempotencyMiddleware } from '../middlewares/idempotency.middleware'
 import { authMiddleware } from '../middlewares/auth.middleware'
 
 const router = Router()
@@ -16,7 +15,7 @@ const authController = new AuthController(authService, userRepository)
 
 const authMiddlewares =
   process.env.NODE_ENV !== 'test'
-    ? [authLimiter, idempotencyMiddleware]
+    ? [authLimiter]
     : []
 
 /**
