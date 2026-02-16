@@ -164,10 +164,10 @@ if (!validPassword) {
 Em vez de `localStorage`, a autenticação é baseada em **cookies HTTP-only**.
 
 **Como funciona:**
-1.  Após o login, o servidor envia o token JWT para o cliente dentro de um cookie com as flags `HttpOnly`, `Secure` (em produ��o) e `SameSite=Lax`.
+1.  Após o login, o servidor envia o token JWT para o cliente dentro de um cookie com as flags `HttpOnly`, `Secure` (em produção) e `SameSite=Lax`.
 2.  **`HttpOnly`:** Impede que o cookie seja acessado por JavaScript no frontend, mitigando o roubo de token por ataques XSS.
 3.  **`Secure`:** Garante que o cookie só seja enviado em requisições HTTPS.
-4.  **`SameSite=Lax`:** Reduz risco de CSRF sem quebrar o fluxo de navega��o normal.
+4.  **`SameSite=Lax`:** Reduz risco de CSRF sem quebrar o fluxo de navegação normal.
 5.  O navegador se encarrega de enviar o cookie automaticamente em cada requisição subsequente à API.
 
 ### 3. Prevenção contra XSS (Cross-Site Scripting)
