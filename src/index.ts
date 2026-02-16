@@ -13,11 +13,38 @@ import cookieParser from 'cookie-parser'
 
 const app = express()
 
-app.use(cors({
-  origin: 'http://localhost:5173', 
-  credentials: true,              
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-}))
+const localhostOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/
+
+const isAllowedOrigin = (origin?: string) => {
+  if (!origin) {
+    return true
+  }
+
+  if (env.CORS_ORIGINS.length > 0) {
+    return env.CORS_ORIGINS.includes(origin)
+  }
+
+  if (env.NODE_ENV === 'production') {
+    return false
+  }
+
+  return localhostOriginRegex.test(origin)
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error('Origem não permitida pelo CORS'))
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  }),
+)
 
 app.use(cookieParser())
 
